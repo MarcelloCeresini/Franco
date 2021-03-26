@@ -1,6 +1,6 @@
 import os
 import pathlib
-
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
@@ -11,7 +11,7 @@ from tensorflow.keras import layers
 from tensorflow.keras import models
 from IPython import display
 
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
+
 
 # Set seed for experiment reproducibility
 seed = 42
@@ -198,4 +198,3 @@ tflite_model = converter.convert()
 
 with open("model.tflite", "wb") as f:
     f.write(tflite_model)
-
