@@ -20,7 +20,7 @@ print()
 # import data
 data_dir = pathlib.Path('data/speech_commands')
 (train_ds, val_ds, test_ds), ds_info = tfds.load("speech_commands",
-    split=["train", "validation", "test"],
+    split=["train[:1%]", "validation[:1%]", "test"],
     shuffle_files=True,
     data_dir=data_dir,
     as_supervised=True,
@@ -52,7 +52,7 @@ if not os.path.exists(training_dir):
 
 resumable_model = ResumableModel(model, to_path=training_path)
 
-TOTAL_EPOCHS = 1
+TOTAL_EPOCHS = 3
 history = resumable_model.fit(
     train_ds,
     validation_data=val_ds,

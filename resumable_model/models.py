@@ -25,22 +25,20 @@ class ResumableModel(object):
     def __init__(self, model, to_path="training/model"):
         self.model = model
         self.to_path = to_path
-        self.epoch_num_file = self.to_path + "_epoch_num.pkl"
-        self.history_file = self.to_path + "_history.pkl"
         self.dir_name = os.path.dirname(to_path)
-        # set checkpoint path with n° of epoch
-        self.checkpoint_path = self.dir_name + "/checkpoints/cp-{epoch:04d}.ckpt"
-        self.checkpoint_dir = os.path.dirname(self.checkpoint_path)
+
         # recover latest epoch
+        self.epoch_num_file = self.to_path + "_epoch_num.pkl"
         self.initial_epoch = self.get_epoch_num()
         # recover history
+        self.history_file = self.to_path + "_history.pkl"
         self.history = self.get_history()
         # recover model from path
-        if os.path.exists(self.checkpoint_dir):
-            latest = tf.train.latest_checkpoint(self.checkpoint_dir)
-            model.load_weights(latest)
-            logger = logging.getLogger()
-            logger.info(f"Recovered model from {to_path} at epoch {self.initial_epoch}.")
+        if os.path.exists(self.to_path):
+            self.model = load_model(self.to_path)
+            print(f"Recovered model from {self.to_path} at epoch {self.initial_epoch}.")
+        else:
+            os.mkdir(self.to_path)
 
     def _load_pickle(self, filePath, default_value):
         if os.path.exists(filePath) and os.path.getsize(filePath)>0:
@@ -61,26 +59,31 @@ class ResumableModel(object):
         if 'callbacks' not in kwargs:
             kwargs['callbacks'] = []
         kwargs['callbacks'].append(HistoryLogger(history_path=self.history_file, recovered_history=self.history))
-        kwargs['callbacks'].append(ModelCheckpoint(self.to_path, verbose=True, save_weights_only=True))
+        kwargs['callbacks'].append(ModelCheckpoint(self.to_path, verbose=True))
         kwargs['callbacks'].append(EpochCounter(counter_path=self.epoch_num_file))
         # Warn user if the training is already complete.
         if 'epochs' in kwargs and self.initial_epoch >= kwargs['epochs']:
             epochs = kwargs['epochs']
-            logger = logging.getLogger()
-            logger.warning(f'You want to train for {epochs} epochs but {self.initial_epoch} epochs already completed; nothing to do.')
+            print(f'You want to train for {epochs} epochs but {self.initial_epoch} epochs already completed; nothing to do.')
         return args, kwargs
 
     def _perform_final_save(self, remaining_history, epoch):
         # Combine histories and save
         combined_history = merge_dicts_with_only_lists_as_values([self.history, remaining_history.history])
         # Dump history
+        print("writing history")
         with open(self.history_file, "wb") as f:
             pickle.dump(combined_history, f)
+        print("finished writing history")
         # Dump last last epoch
+        print("writing epoch")
         with open(self.epoch_num_file, "wb") as f:
             pickle.dump(epoch, f)
+        print("finished writing epoch")
         # # Save model
-        # self.model.save(self.to_path)
+        print("saving")
+        self.model.save(self.to_path)
+        print("finished")
         return combined_history
 
     def fit(self, *args, **kwargs):
