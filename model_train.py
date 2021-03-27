@@ -1,6 +1,11 @@
 import os
 import pathlib
-# os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+import sys
+
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+
+sys.path.append("~/github/Ramassin/resumable_model")
+from resumable_model.models import ResumableModel
 
 import tensorflow as tf
 import tensorflow_datasets as tfds
@@ -34,36 +39,30 @@ num_classes = ds_info.features["label"].num_classes
 
 model =  KeywordRecognitionModel(input_shape, num_classes)
 
-checkpoint_path = "training/cp-{epoch:04d}.ckpt"
-checkpoint_dir = os.path.dirname(checkpoint_path)
-
-check = pathlib.Path(checkpoint_dir)
-if not check.exists():  # --> initialize model
-    # model.summary()
-    model.save_weights(checkpoint_path.format(epoch=0))
-else:
-    latest = tf.train.latest_checkpoint(checkpoint_dir)
-    model.load_weights(latest)
-
 model.compile(
     optimizer=tf.keras.optimizers.Adam(learning_rate=0.1),
     loss=tf.keras.losses.SparseCategoricalCrossentropy(),
     metrics="accuracy"
 )
 
-print("Start training")
-EPOCHS = 1
-history = model.fit(
+training_path = "training/model"
+training_dir = os.path.dirname(training_path)
+if not os.path.exists(training_dir):
+    os.mkdir(training_dir)
+
+resumable_model = ResumableModel(model, to_path=training_path)
+
+TOTAL_EPOCHS = 1
+history = resumable_model.fit(
     train_ds,
     validation_data=val_ds,
     batch_size=batch_size,
     validation_batch_size=batch_size,
-    epochs=EPOCHS,
+    epochs=TOTAL_EPOCHS,
     callbacks=[
-        tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience=5, restore_best_weights=True, verbose=1),
-        tf.keras.callbacks.ModelCheckpoint(filepath=checkpoint_path, save_weights_only=True, verbose=1),
+        tf.keras.callbacks.EarlyStopping(monitor="val_loss", patience = 10, restore_best_weights=True, verbose=1),
         tf.keras.callbacks.ReduceLROnPlateau(factor = 0.1, patience = 5, verbose=1)
     ]
 )
 
-# model.save('saved_model/my_model_finished')
+# model.save(training_path)
