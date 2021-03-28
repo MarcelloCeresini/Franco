@@ -58,7 +58,7 @@ if not os.path.exists(training_dir):
 
 resumable_model = ResumableModel(model, to_path=training_path)
 
-TOTAL_EPOCHS = 3
+TOTAL_EPOCHS = 1
 history = resumable_model.fit(
     train_ds,
     validation_data=val_ds,
