@@ -4,8 +4,14 @@ import tensorflow as tf
 from tensorflow.keras.models import load_model
 from tensorflow.keras.callbacks import ModelCheckpoint
 
+# from tensorflow.keras.utils.generic_utils import get_custom_objects
+
 from .callbacks import EpochCounter, HistoryLogger
 from .utils import merge_dicts_with_only_lists_as_values
+
+import sys
+sys.path.append("~/github/Ramassin")
+import loss_func
 
 class ResumableModel(object):
     """Save and overwrite a model to 'to_path',
@@ -22,10 +28,11 @@ class ResumableModel(object):
 
     Returns: A Keras History.history dictionary of the entire training process.
     """
-    def __init__(self, model, to_path="training/model"):
+    def __init__(self, model, to_path="training/model", custom_objects=None):
         self.model = model
         self.to_path = to_path
         self.dir_name = os.path.dirname(to_path)
+        self.custom_objects = custom_objects
 
         # recover latest epoch
         self.epoch_num_file = self.to_path + "_epoch_num.pkl"
@@ -33,9 +40,11 @@ class ResumableModel(object):
         # recover history
         self.history_file = self.to_path + "_history.pkl"
         self.history = self.get_history()
+
         # recover model from path
         if os.path.exists(self.to_path):
-            self.model = load_model(self.to_path)
+            # get_custom_objects().update(self.custom_objects)
+            self.model = load_model(self.to_path, custom_objects=self.custom_objects)
             print(f"Recovered model from {self.to_path} at epoch {self.initial_epoch}.")
         else:
             os.mkdir(self.to_path)

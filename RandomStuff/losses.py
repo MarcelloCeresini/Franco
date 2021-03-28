@@ -1,6 +1,8 @@
 import tensorflow as tf
 from tensorflow.python.ops import array_ops
+
 # https://github.com/ailias/Focal-Loss-implement-on-Tensorflow/blob/master/focal_loss.py
+
 class FocalCrossEntropy(tf.keras.losses.Loss):
     def __init__(self,  alpha=0.25, gamma=2.0, from_logits=False, name="focal_crossentropy"):
         super().__init__(name=name)
