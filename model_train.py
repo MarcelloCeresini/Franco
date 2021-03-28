@@ -10,9 +10,12 @@ from resumable_model.models import ResumableModel
 import tensorflow as tf
 import tensorflow_addons as tfa
 import tensorflow_datasets as tfds
+from focal_loss import SparseCategoricalFocalLoss
+
 
 from data_preprocessing import preprocess_dataset
 from model_definition import KeywordRecognitionModel
+from loss import FocalCrossEntropy
 
 print()
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
@@ -27,22 +30,22 @@ data_dir = pathlib.Path('data/speech_commands')
     data_dir=data_dir,
     as_supervised=True,
     with_info=True)
-
+num_classes = ds_info.features["label"].num_classes
 ################################################################################
 batch_size = 16
 AUTOTUNE = tf.data.AUTOTUNE
-train_ds = preprocess_dataset(train_ds, AUTOTUNE, batch_size)
-val_ds = preprocess_dataset(val_ds, AUTOTUNE, batch_size)
+train_ds = preprocess_dataset(train_ds, AUTOTUNE, batch_size, one_hot = num_classes)
+val_ds = preprocess_dataset(val_ds, AUTOTUNE, batch_size, one_hot = num_classes)
 ################################################################################
 
 for element, label in train_ds.take(1):
     input_shape = (element.shape[1], element.shape[2], element.shape[3])
-num_classes = ds_info.features["label"].num_classes
+
 
 model = KeywordRecognitionModel(input_shape, num_classes)
 
 optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
-loss = tfa.losses.SigmoidFocalCrossEntropy(alpha=0.25, gamma=2.0)
+loss = FocalCrossEntropy(alpha=0.25, gamma=2.0)
 metric = tf.keras.metrics.AUC(num_thresholds=200, curve='PR')
 
 model.compile(
