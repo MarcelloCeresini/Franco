@@ -18,9 +18,11 @@ def get_spectrogram(waveform, label):
     return spectrogram, label
 
 
-def preprocess_dataset(ds, AUTOTUNE, batch_size=128):
-    output_ds = ds.map(get_spectrogram,  num_parallel_calls=AUTOTUNE)
-    output_ds = output_ds.batch(batch_size).prefetch(tf.data.AUTOTUNE)
+def preprocess_dataset(ds, AUTOTUNE, batch_size=128, one_hot=0):
+    if one_hot:  # one_hot MUST BE = num_classes
+        ds = ds.map(lambda x,y: (x, tf.one_hot(y, depth=one_hot)), num_parallel_calls=AUTOTUNE)
+    output_ds = ds.map(get_spectrogram, num_parallel_calls=AUTOTUNE)
+    output_ds = output_ds.batch(batch_size).prefetch(AUTOTUNE)
     # cache to speed up the training, look out for memory consumption (it will saturate the RAM for large datasets)
     # output_ds = output_ds.batch(batch_size).cache().prefetch(tf.data.AUTOTUNE)
     return output_ds
