@@ -8,6 +8,7 @@ sys.path.append("~/github/Ramassin/resumable_model")
 from resumable_model.models import ResumableModel
 
 import tensorflow as tf
+import tensorflow_addons as tfa
 import tensorflow_datasets as tfds
 
 from data_preprocessing import preprocess_dataset
@@ -19,8 +20,9 @@ print()
 
 # import data
 data_dir = pathlib.Path('data/speech_commands')
-(train_ds, val_ds, test_ds), ds_info = tfds.load("speech_commands",
-    split=["train[:1%]", "validation[:1%]", "test"],
+(train_ds, val_ds), ds_info = tfds.load("speech_commands",
+    # split=["train[:1%]", "validation[:1%]"],  # uncomment to test stuff
+    split=["train", "validation"],  # real training
     shuffle_files=True,
     data_dir=data_dir,
     as_supervised=True,
@@ -37,12 +39,16 @@ for element, label in train_ds.take(1):
     input_shape = (element.shape[1], element.shape[2], element.shape[3])
 num_classes = ds_info.features["label"].num_classes
 
-model =  KeywordRecognitionModel(input_shape, num_classes)
+model = KeywordRecognitionModel(input_shape, num_classes)
+
+optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
+loss = tfa.losses.SigmoidFocalCrossEntropy(alpha=0.25, gamma=2.0)
+metric = tf.keras.metrics.AUC(num_thresholds=200, curve='PR')
 
 model.compile(
-    optimizer=tf.keras.optimizers.Adam(learning_rate=0.1),
-    loss=tf.keras.losses.SparseCategoricalCrossentropy(),
-    metrics="accuracy"
+    optimizer=optimizer,
+    loss=loss,
+    metrics=metric
 )
 
 training_path = "training/model"
