@@ -68,7 +68,7 @@ class ResumableModel(object):
         if 'callbacks' not in kwargs:
             kwargs['callbacks'] = []
         kwargs['callbacks'].append(HistoryLogger(history_path=self.history_file, recovered_history=self.history))
-        kwargs['callbacks'].append(ModelCheckpoint(self.to_path, verbose=True))
+        kwargs['callbacks'].append(ModelCheckpoint(self.to_path, verbose=True, save_best_only=True))
         kwargs['callbacks'].append(EpochCounter(counter_path=self.epoch_num_file))
         # Warn user if the training is already complete.
         if 'epochs' in kwargs and self.initial_epoch >= kwargs['epochs']:
@@ -90,9 +90,9 @@ class ResumableModel(object):
             pickle.dump(epoch, f)
         print("finished writing epoch")
         # # Save model
-        print("saving")
-        self.model.save(self.to_path)
-        print("finished")
+        # print("saving")
+        # self.model.save(self.to_path)
+        # print("finished")
         return combined_history
 
     def fit(self, *args, **kwargs):
