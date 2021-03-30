@@ -6,7 +6,7 @@ from tensorflow.keras.activations import relu, sigmoid
 ##############################################################
 # A GOOD IDEA could be to DIFFERENCIATE between time and frequency
 ############################################################
-weight_decay=1e-4
+weight_decay=1e-3
 ############################################################
 
 # model definition
@@ -47,7 +47,9 @@ def SqueezeExcitationLayer(x_init, ratio=16):
 
     x = layers.GlobalAveragePooling2D()(x_init)
     x = layers.Dense(channels / ratio, activation="relu")(x)  # Bottleneck
+    x = layers.Dropout(0.5)(x)
     x = layers.Dense(channels, activation="sigmoid")(x)
+    x = layers.Dropout(0.5)(x)
     x = layers.Multiply()([x_init, x])
 
     return x
@@ -79,6 +81,7 @@ def KeywordRecognitionModel(input_shape, num_classes):
         x = DepthSeparableResidualBlock(x, (512, 2048), name="conv5_" + str(i+2) + "_")
 
     x = layers.GlobalAveragePooling2D()(x)
+    x = layers.Dropout(0.5)(x)
     outputs = layers.Dense(num_classes, activation="softmax")(x)
 
     return Model(inputs, outputs)

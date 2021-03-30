@@ -9,13 +9,12 @@ sys.path.append("~/github/Ramassin/resumable_model")
 from resumable_model.models import ResumableModel
 
 import tensorflow as tf
-import tensorflow_addons as tfa
 import tensorflow_datasets as tfds
 from loss_func import focal_crossentropy_func
 # from focal_loss import SparseCategoricalFocalLoss
 
 from data_preprocessing import preprocess_dataset
-from model_definition import KeywordRecognitionModel
+from classifier_definition import KeywordRecognitionModel
 
 print()
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
@@ -24,7 +23,7 @@ print()
 # import data
 data_dir = pathlib.Path('data/speech_commands')
 (train_ds, val_ds), ds_info = tfds.load("speech_commands",
-    # split=["train[:1%]", "validation[:1%]"],  # uncomment to test stuff
+    # split=["train[:10%]", "validation[:10%]"],  # uncomment to test stuff
     split=["train", "validation"],  # real training
     shuffle_files=True,
     data_dir=data_dir,
@@ -43,7 +42,7 @@ for element, label in train_ds.take(1):
 
 model = KeywordRecognitionModel(input_shape, num_classes)
 
-optimizer = tf.keras.optimizers.Adam(learning_rate=0.01)
+optimizer = tf.keras.optimizers.Nadam(learning_rate=0.001)
 loss = focal_crossentropy_func(alpha=0.25, gamma=2.0)
 metric = tf.keras.metrics.AUC(num_thresholds=200, curve='PR')
 
@@ -62,7 +61,7 @@ custom_objects = { "focal_crossentropy": loss }
 # with tf.keras.utils.custom_object_scope(custom_objects):
 resumable_model = ResumableModel(model, to_path=training_path, custom_objects=custom_objects)
 
-TOTAL_EPOCHS = 4
+TOTAL_EPOCHS = 7
 history = resumable_model.fit(
     train_ds,
     validation_data=val_ds,
