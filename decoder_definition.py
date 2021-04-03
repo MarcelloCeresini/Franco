@@ -1,4 +1,3 @@
-
 import os
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
@@ -7,7 +6,6 @@ import tensorflow as tf
 from tensorflow.keras import layers, Model
 from tensorflow.keras.regularizers import l2
 from tensorflow.keras.activations import relu
-
 
 ############################################################
 weight_decay=1e-3
@@ -70,7 +68,7 @@ def DenoisingAutoencoderModel(input_shape):
     # Encoding part
     for i in range(encoding_layers):
         x = DepthSeparableBlock(x, filters[i], name="conv"+str(i)+"a_")
-        x = layers.MaxPool2D(pool_size=(2, 2), padding="same")(x)
+        x = layers.MaxPool2D(pool_size=(2, 2), padding="same")(x) ### TO BE REPLACED WITH STRIDE IN THE CONV
 
         x = DepthSeparableBlock(x, filters[i], name="conv"+str(i)+"b_")
         x = layers.MaxPool2D(pool_size=(2, 2), padding="same")(x)

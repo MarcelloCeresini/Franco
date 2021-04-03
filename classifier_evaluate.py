@@ -53,7 +53,7 @@ def conf_mtx(test_ds, commands):
     return confusion_matrix
 
 #############################################
-training_path = "training/model"
+training_path = "training_efficient/model"
 
 data_dir = pathlib.Path('data/speech_commands')
 (train_ds, test_ds), ds_info = tfds.load("speech_commands",

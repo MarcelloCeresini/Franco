@@ -31,10 +31,10 @@ num_classes = ds_info.features["label"].num_classes
 ################################################################################
 batch_size = 16
 AUTOTUNE = tf.data.AUTOTUNE
-'''
-train_ds = augment_dataset(train_ds, AUTOTUNE, batch_size, one_hot = num_classes)
-val_ds = augment_dataset(val_ds, AUTOTUNE, batch_size, one_hot = num_classes)
-'''
+
+denoising_train_ds = augment_dataset(train_ds, AUTOTUNE, batch_size, one_hot = num_classes)
+denoising_val_ds = augment_dataset(val_ds, AUTOTUNE, batch_size, one_hot = num_classes)
+
 ################################################################################
 
 for element, label in train_ds.take(1):

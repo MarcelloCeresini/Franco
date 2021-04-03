@@ -28,7 +28,7 @@ class ResumableModel(object):
 
     Returns: A Keras History.history dictionary of the entire training process.
     """
-    def __init__(self, model, to_path="training/model", custom_objects=None):
+    def __init__(self, model, to_path, custom_objects=None):
         self.model = model
         self.to_path = to_path
         self.dir_name = os.path.dirname(to_path)
